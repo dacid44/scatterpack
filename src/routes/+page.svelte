@@ -1,2 +1,14 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script>
+    import PackItem from '$lib/PackItem.svelte';
+	import { ListGroup, ListGroupItem } from '@sveltestrap/sveltestrap';
+
+    /** @type {import('./$types').PageData} */
+    export let data;
+    console.log(data);
+</script>
+
+<ListGroup class="tw-relative">
+    {#each data.packingList as item}
+        <ListGroupItem><PackItem {item} /></ListGroupItem>
+    {/each}
+</ListGroup>
