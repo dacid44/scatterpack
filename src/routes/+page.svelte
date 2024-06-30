@@ -1,12 +1,7 @@
 <script>
-	import PackItem from '$lib/PackItem.svelte';
-	import { Button, ListGroup, ListGroupItem } from '@sveltestrap/sveltestrap';
-	import { onMount } from 'svelte';
-	import Sortable from 'sortablejs';
-	import { invoke } from '@tauri-apps/api/core';
-	import { randomId } from '$lib';
 	import { savePackingList } from '$lib/backend';
 	import PackItemList from '$lib/PackItemList.svelte';
+	import { Button } from 'flowbite-svelte';
 
 	/** @type {import('./$types').PageData} */
 	export let data;
@@ -28,3 +23,4 @@
 
 <PackItemList bind:list={data.packingList}></PackItemList>
 <Button color="primary" on:click={saveList}>Save</Button>
+<a href="/items">items</a>

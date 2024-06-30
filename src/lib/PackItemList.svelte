@@ -1,10 +1,22 @@
 <script>
 	import { randomId } from '$lib';
-	import { Button, Icon, ListGroup, ListGroupItem } from '@sveltestrap/sveltestrap';
 	import PackItem from './PackItem.svelte';
 	import { onMount } from 'svelte';
 	import Sortable from 'sortablejs';
 	import { loadPackingLists } from './backend';
+	import {
+		Button,
+		ButtonGroup,
+		Card,
+		Input,
+		Label,
+		Listgroup,
+		ListgroupItem,
+		Modal
+	} from 'flowbite-svelte';
+	import { CirclePlusSolid, CloseOutline, FloppyDiskSolid, RectangleListSolid } from 'flowbite-svelte-icons';
+	import MoveHandle from './MoveHandle.svelte';
+	import EditModal from './EditModal.svelte';
 
 	/** @type {ListItem[]} */
 	export let list = [];
@@ -22,7 +34,13 @@
 	});
 	console.log(itemMap);
 
+	/** @type {Record<string, () => void>} */
+	let destructors = {};
+
 	const listId = 'list-' + randomId();
+
+	/** @type {Record<string, boolean>} */
+	let editModal = {};
 
 	onMount(() => {
 		let listElem = document.getElementById(listId);
@@ -30,6 +48,8 @@
 			let sortable = Sortable.create(listElem, {
 				group,
 				draggable: '.pack-list-item',
+				// handle: '.item-move-handle',
+				animation: 150,
 				onSort(event) {
 					let rerender = false;
 					if (event.from.id === listId && event.oldDraggableIndex !== undefined) {
@@ -55,7 +75,7 @@
 		const newItem = {
 			type: 'item',
 			content: {
-				name: '',
+				name: 'Item',
 				location: '',
 				quantity: 1
 			}
@@ -64,11 +84,48 @@
 		list.push(newItem);
 		keys.push(key);
 		itemMap.set(key, newItem);
+		editModal[key] = true;
 		keys = keys;
+	}
+
+	function addCollection() {
+		/** @type {ListItem} */
+		const newCollection = {
+			type: 'collection',
+			content: {
+				name: 'Collection',
+				items: []
+			}
+		};
+		const key = 'item-' + randomId();
+		list.push(newCollection);
+		keys.push(key);
+		itemMap.set(key, newCollection);
+		editModal[key] = true;
+		keys = keys;
+	}
+
+	/** Recursively delete all child items of this list from itemMap. */
+	export function destructor() {
+		for (let key of keys) {
+			const child = itemMap.get(key);
+			if (child !== undefined) {
+				if (child.type === 'collection' && key in destructors) {
+					destructors[key]();
+				}
+				itemMap.delete(key);
+			}
+		}
 	}
 
 	/** @param {string} key */
 	function deleteItem(key) {
+		if (key in destructors) {
+			destructors[key]();
+			delete destructors[key];
+			console.log(destructors);
+		}
+		delete editModal[key];
 		const index = keys.findIndex((k) => k === key);
 		list.splice(index, 1);
 		keys.splice(index, 1);
@@ -77,30 +134,55 @@
 	}
 </script>
 
-<ListGroup id={listId}>
+<ul id={listId} class="m-2 space-y-2">
 	{#each list.map((item, i) => ({ item, key: keys[i] })) as { item, key } (key)}
 		{#if item.type === 'item'}
-			<ListGroupItem class="tw-rounded-s-none pack-list-item" id={key}>
-				<PackItem bind:item={item.content} on:deleteItem={() => deleteItem(key)} />
-			</ListGroupItem>
+			<li class="rounded-s-none pack-list-item" id={key}>
+				<PackItem
+					handleClass="item-move-handle"
+					bind:item={item.content}
+					on:deleteItem={() => deleteItem(key)}
+					bind:editModal={editModal[key]}
+				/>
+			</li>
 		{:else}
-			<ListGroupItem class="tw-rounded-s-none pack-list-item">
-				<p>{item.content.name}</p>
-				<div class="tw-border-solid tw-border-0 tw-border-l-8 tw-border-l-secondary">
-					<svelte:self bind:list={item.content.items} bind:itemMap {group} />
-				</div>
-			</ListGroupItem>
+			<li class="rounded-s-none pack-list-item">
+				<Card padding="none" class="focus-within:outline">
+					<div class="mt-2 mx-2 h-4 flex gap-2">
+						<MoveHandle class="item-move-handle" />
+						<button class="text-start w-full outline-none" on:click={() => (editModal[key] = true)}>
+							<h5 class="my-0 text-sm font-semibold text-gray-900 dark:text-white leading-none">
+								{item.content.name}
+							</h5>
+						</button>
+					</div>
+					<svelte:self bind:list={item.content.items} bind:itemMap bind:destructor={destructors[key]} {group} />
+				</Card>
+
+				<EditModal bind:open={editModal[key]} on:deleteItem={() => deleteItem(key)} focusId="name-input">
+					<div class="space-y-2">
+						<Label for="name-input">Name</Label>
+						<Input
+							id="name-input"
+							type="text"
+							placeholder="clothes"
+							bind:value={item.content.name}
+						/>
+					</div>
+				</EditModal>
+			</li>
 		{/if}
 	{/each}
-	<ListGroupItem class="tw-border-0">
-		<Button class="tw-w-8" color="primary" size="sm" on:click={addItem}>
-			<Icon name="plus-lg" />
-		</Button>
-	</ListGroupItem>
-</ListGroup>
-
-<style>
-	.pack-list-item :nth-last-child(2) {
-		border-bottom-right-radius: inherit;
-	}
-</style>
+	<li>
+		<ButtonGroup>
+			<Button color="primary" size="xs" on:click={addItem}>
+				<CirclePlusSolid class="w-4 h-4 me-1" />
+				Add item
+			</Button>
+			<Button color="primary" size="xs" on:click={addCollection}>
+				<RectangleListSolid class="w-4 h-4 me-1" />
+				Add collection
+			</Button>
+		</ButtonGroup>
+	</li>
+</ul>
