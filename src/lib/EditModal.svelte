@@ -14,6 +14,7 @@
 	const dispatch = createEventDispatcher();
 
 	let attemptDelete = false;
+    let ranAutofocus = false;
 
 	function deleteItem() {
 		if (attemptDelete) {
@@ -26,15 +27,17 @@
 	$: {
 		if (!open) {
 			attemptDelete = false;
+            ranAutofocus = false;
 		}
 	}
 
 	afterUpdate(() => {
-		if (open && focusId !== null) {
+		if (open && !ranAutofocus && focusId !== null) {
 			const focusElement = document.getElementById(focusId);
 			if (focusElement) {
 				focusElement.focus();
 			}
+            ranAutofocus = true;
 		}
 	});
 

@@ -17,7 +17,7 @@
 	export let editModal = false;
 </script>
 
-<Card horizontal padding="none" class="pl-2 focus-within:outline flex flex-row">
+<Card horizontal padding="none" class="pl-2 has-[>:focus]:outline flex flex-row">
 	<MoveHandle class={handleClass} />
 	<button class="text-start outline-none px-2 py-1 grow" on:click={() => (editModal = true)}>
 		<h5 class="my-0 text-sm font-semibold text-gray-900 dark:text-white leading-none">

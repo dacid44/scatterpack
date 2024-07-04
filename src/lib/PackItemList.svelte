@@ -50,6 +50,8 @@
 				draggable: '.pack-list-item',
 				// handle: '.item-move-handle',
 				animation: 150,
+				invertSwap: true,
+				emptyInsertThreshold: 20,
 				onSort(event) {
 					let rerender = false;
 					if (event.from.id === listId && event.oldDraggableIndex !== undefined) {
@@ -134,7 +136,8 @@
 	}
 </script>
 
-<ul id={listId} class="m-2 space-y-2">
+<div class="m-2 space-y-2">
+<ul id={listId} class="space-y-2">
 	{#each list.map((item, i) => ({ item, key: keys[i] })) as { item, key } (key)}
 		{#if item.type === 'item'}
 			<li class="rounded-s-none pack-list-item" id={key}>
@@ -147,7 +150,7 @@
 			</li>
 		{:else}
 			<li class="rounded-s-none pack-list-item">
-				<Card padding="none" class="focus-within:outline">
+				<Card padding="none" class="has-[>div>:focus]:outline">
 					<div class="mt-2 mx-2 h-4 flex gap-2">
 						<MoveHandle class="item-move-handle" />
 						<button class="text-start w-full outline-none" on:click={() => (editModal[key] = true)}>
@@ -173,16 +176,15 @@
 			</li>
 		{/if}
 	{/each}
-	<li>
-		<ButtonGroup>
-			<Button color="primary" size="xs" on:click={addItem}>
-				<CirclePlusSolid class="w-4 h-4 me-1" />
-				Add item
-			</Button>
-			<Button color="primary" size="xs" on:click={addCollection}>
-				<RectangleListSolid class="w-4 h-4 me-1" />
-				Add collection
-			</Button>
-		</ButtonGroup>
-	</li>
 </ul>
+<ButtonGroup>
+	<Button color="primary" size="xs" on:click={addItem}>
+		<CirclePlusSolid class="w-4 h-4 me-1" />
+		Add item
+	</Button>
+	<Button color="primary" size="xs" on:click={addCollection}>
+		<RectangleListSolid class="w-4 h-4 me-1" />
+		Add collection
+	</Button>
+</ButtonGroup>
+</div>
