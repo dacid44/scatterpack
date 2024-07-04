@@ -4,7 +4,7 @@
   "identifier": "net.dacid44.scatterpack",
   "build": {
     "frontendDist": "../build",
-    "devUrl": "http://localhost:5173",
+    "devUrl": "http://100.124.136.75:5173",
     "beforeDevCommand": "bun run dev",
     "beforeBuildCommand": "bun run build"
   },

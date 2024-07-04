@@ -1,0 +1,31 @@
+productName = "scatterpack"
+version = "0.1.0"
+identifier = "net.dacid44.scatterpack"
+
+[build]
+frontendDist = "../build"
+devUrl = "http://localhost:5173"
+beforeDevCommand = "bun run dev"
+beforeBuildCommand = "bun run build"
+
+[[app.windows]]
+title = "ScatterPack"
+width = 800
+height = 600
+resizable = true
+fullscreen = false
+dragDropEnabled = false
+
+[app.security]
+# csp = null (toml has no null so just leave it unset)
+
+[bundle]
+active = true
+targets = "all"
+icon = [
+    "icons/32x32.png",
+    "icons/128x128.png",
+    "icons/128x128@2x.png",
+    "icons/icon.icns",
+    "icons/icon.ico",
+]
