@@ -20,3 +20,10 @@ export async function savePackingList(packingList) {
 export async function loadPackingLists() {
 	return await invoke('load_packing_lists');
 }
+
+/**
+ * @returns {Promise<string>}
+ */
+export async function pickFile() {
+	return await invoke('pick_file');
+}

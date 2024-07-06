@@ -1,3 +1,5 @@
+mod thumbnail;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -43,8 +45,6 @@ pub struct PackCollection {
     pub name: String,
     pub items: Vec<ListItem>,
 }
-
-
 
 impl PackCollection {
     pub fn new(name: impl Into<String>, items: Vec<ListItem>) -> Self {
