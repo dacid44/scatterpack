@@ -1,0 +1,10 @@
+identifier = "main-capability"
+description = "Capability for the main window"
+windows = ["main"]
+
+[[permissions]]
+identifier = "fs:default"
+
+[[permissions]]
+identifier = "fs:allow-read"
+allow = [{ path = "$APPDATA/item_thumbnails/*" }]

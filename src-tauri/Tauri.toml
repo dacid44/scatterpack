@@ -4,7 +4,7 @@ identifier = "net.dacid44.scatterpack"
 
 [build]
 frontendDist = "../build"
-devUrl = "http://100.124.136.75:5173"
+devUrl = "http://localhost:5173"
 beforeDevCommand = "bun run dev"
 beforeBuildCommand = "bun run build"
 
@@ -19,6 +19,7 @@ dragDropEnabled = false
 [app.security]
 # csp = null (toml has no null so just leave it unset)
 pattern.use = "brownfield"
+capabilities = ["default", "main-capability"]
 
 [bundle]
 active = true

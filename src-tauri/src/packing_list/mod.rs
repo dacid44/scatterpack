@@ -1,4 +1,4 @@
-mod thumbnail;
+pub mod thumbnail;
 
 use serde::{Deserialize, Serialize};
 
@@ -62,3 +62,4 @@ pub enum ListItem {
     Item(PackItem),
     Collection(PackCollection),
 }
+

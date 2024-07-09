@@ -2,11 +2,14 @@
 	import { pickFile } from '$lib/backend';
 	import { Button } from 'flowbite-svelte';
 	import { open } from '@tauri-apps/plugin-dialog';
+	import { readFile } from '@tauri-apps/plugin-fs';
 
-	let path = '';
+	let url = '';
 
 	async function openFileDialog() {
-		path = await pickFile();
+		let path = await pickFile();
+    let imageBlob = new Blob([await readFile(path)], { type: 'image/jpg' });
+    url = window.URL.createObjectURL(imageBlob);
 	}
 
 	let jsPath = '';
@@ -19,6 +22,6 @@
 </script>
 
 <Button color="primary" on:click={openFileDialog}>open file picker</Button>
-<div>{path}</div>
+<img src={url} on:load={() => window.URL.revokeObjectURL(url)} alt="user selected" />
 <Button color="primary" on:click={openFileDialogJs}>open file picker (JS)</Button>
 <div>{jsPath}</div>

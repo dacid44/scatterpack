@@ -1,4 +1,4 @@
-use packing_list::{ListItem, PackCollection, PackItem, PackingList};
+use packing_list::{thumbnail::Thumbnails, ListItem, PackCollection, PackItem, PackingList};
 use tauri::{async_runtime::Mutex, Manager, Wry};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_store::{Store, StoreBuilder};
@@ -8,11 +8,13 @@ mod platform;
 
 struct AppState {
     packing_lists_store: Mutex<Store<Wry>>,
+    thumbnails: Thumbnails,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {
@@ -27,6 +29,8 @@ pub fn run() {
             }
             app.manage(AppState {
                 packing_lists_store: Mutex::new(store),
+                thumbnails: Thumbnails::new(app.handle().clone())
+                    .expect("failed to initialize thumbnail store"),
             });
             Ok(())
         })
@@ -79,21 +83,27 @@ async fn save_packing_list(packing_list: PackingList, app: tauri::AppHandle) -> 
 #[tauri::command]
 async fn load_packing_lists(app: tauri::AppHandle) -> Result<Vec<PackingList>, String> {
     let state = app.state::<AppState>();
-    let mut store = state.packing_lists_store.lock().await;
+    let store = state.packing_lists_store.lock().await;
     store
         .values()
-        .map(|val| serde_json::from_value(dbg!(val).clone()).map_err(print_error))
+        .map(|val| serde_json::from_value(val.clone()).map_err(print_error))
         .collect()
 }
 
 #[tauri::command]
 async fn pick_file(app: tauri::AppHandle) -> Result<String, String> {
-    Ok(app
+    let path = app
         .dialog()
         .file()
         .blocking_pick_file()
         .ok_or("no file picked")?
-        .path
+        .path;
+    let thumbnails = &app.state::<AppState>().thumbnails;
+    let name = thumbnails
+        .copy_from(path, "test")
+        .map_err(|err| format!("error copying file: {err:?}"))?;
+    Ok(thumbnails
+        .get_full_path(&name)
         .to_string_lossy()
         .into_owned())
 }
