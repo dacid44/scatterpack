@@ -8,6 +8,7 @@ mod platform;
 
 struct AppState {
     packing_lists_store: Mutex<Store<Wry>>,
+    unique_items_store: Mutex<Store<Wry>>,
     thumbnails: Thumbnails,
 }
 
@@ -18,17 +19,25 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {
-            let mut store = StoreBuilder::new("packing_lists.bin").build(app.handle().clone());
-            if store.load().is_err() {
-                store
+            let mut packing_lists_store =
+                StoreBuilder::new("packing_lists.bin").build(app.handle().clone());
+            if packing_lists_store.load().is_err() {
+                packing_lists_store
                     .insert(
                         "example".to_string(),
                         serde_json::to_value(example_packing_list()).map_err(print_error)?,
                     )
                     .map_err(print_error)?;
             }
+
+            let mut unique_items_store =
+                StoreBuilder::new("unique_items.bin").build(app.handle().clone());
+
+            let _ = unique_items_store.load();
+
             app.manage(AppState {
-                packing_lists_store: Mutex::new(store),
+                packing_lists_store: Mutex::new(packing_lists_store),
+                unique_items_store: Mutex::new(unique_items_store),
                 thumbnails: Thumbnails::new(app.handle().clone())
                     .expect("failed to initialize thumbnail store"),
             });
@@ -39,6 +48,8 @@ pub fn run() {
             save_packing_list,
             load_packing_lists,
             pick_file,
+            pick_thumbnail,
+            get_thumbnail_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -106,4 +117,30 @@ async fn pick_file(app: tauri::AppHandle) -> Result<String, String> {
         .get_full_path(&name)
         .to_string_lossy()
         .into_owned())
+}
+
+#[tauri::command]
+async fn pick_thumbnail(name: String, app: tauri::AppHandle) -> Result<String, String> {
+    let path = app
+        .dialog()
+        .file()
+        .add_filter("image", &["png", "jpg", "jpeg", "gif", "webp"])
+        .set_title("Choose a thumbnail image")
+        .blocking_pick_file()
+        .ok_or("no file picked")?
+        .path;
+    let thumbnails = &app.state::<AppState>().thumbnails;
+    let name = thumbnails
+        .copy_from(path, &name)
+        .map_err(|err| format!("error copying file: {err:?}"))?;
+    Ok(name)
+}
+
+#[tauri::command]
+fn get_thumbnail_path(name: String, app: tauri::AppHandle) -> String {
+    app.state::<AppState>()
+        .thumbnails
+        .get_full_path(&name)
+        .to_string_lossy()
+        .into_owned()
 }

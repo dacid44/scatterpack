@@ -1,9 +1,10 @@
 <script>
-	import { Label, ButtonGroup, Card, Input } from 'flowbite-svelte';
+	import { Label, ButtonGroup, Card, Input, Textarea } from 'flowbite-svelte';
 	import MoveHandle from './MoveHandle.svelte';
 	import EditModal from './EditModal.svelte';
+	import ThumbnailUpload from './ThumbnailUpload.svelte';
 
-	/** @type {PackItem} */
+	/** @type {UniqueItem} */
 	export let item;
 
 	/** @type {string} */
@@ -19,22 +20,20 @@
 			{item.name}
 			<span class="font-normal">({item.quantity})</span>
 		</h5>
-		<span class="text-xs font-medium text-gray-500 dark:text-gray-400 leading-none">
-			Location:
-		</span>
-		<span class="text-xs font-regular text-gray-900 dark:text-white leading-none">
-			{item.location}
-		</span>
+		<span class="text-xs font-medium text-gray-500 dark:text-gray-400 leading-none"
+			>Location:</span
+		>
+		<span class="text-xs font-regular text-gray-900 dark:text-white leading-none"
+			>{item.location}</span
+		>
 	</button>
 </Card>
 
 <EditModal bind:open={editModal} on:deleteItem focusId="name-input">
-	<div class="space-y-2">
-		<div class="flex">
-			<Label for="name-input">Name</Label>
-			<Label for="quantity-input" class="ml-auto w-20">Quantity</Label>
-		</div>
-		<ButtonGroup class="flex">
+	<div class="flex flex-col sm:flex-row-reverse items-center gap-4 space-y-2">
+		<ThumbnailUpload bind:name={item.thumbnail} />
+		<div class="relative grow w-full sm:w-auto space-y-2">
+			<Label for="name-input" class="absolute top-[-1.25rem]">Name</Label>
 			<Input
 				id="name-input"
 				type="text"
@@ -42,14 +41,11 @@
 				required
 				bind:value={item.name}
 			/>
-			<Input
-				id="quantity-input"
-				type="number"
-				required
-				class="w-20"
-				bind:value={item.quantity}
-			/>
-		</ButtonGroup>
+		</div>
+	</div>
+	<div class="space-y-2">
+		<Label for="description-input">Description</Label>
+		<Textarea id="description-input" rows="3" bind:value={item.description} />
 	</div>
 	<div class="space-y-2">
 		<Label for="location-input">Location</Label>

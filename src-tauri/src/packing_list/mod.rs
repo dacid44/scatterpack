@@ -63,3 +63,11 @@ pub enum ListItem {
     Collection(PackCollection),
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UniqueItem {
+    name: String,
+    description: String,
+    location: String,
+    thumbnail: Option<String>,
+}

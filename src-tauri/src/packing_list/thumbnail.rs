@@ -43,6 +43,7 @@ impl Thumbnails {
     /// Copies a file from the given path to the thumbnail store. Appends the original file
     /// extension to the new name given and returns the name.
     pub fn copy_from(&self, from: impl AsRef<Path>, to: &str) -> Result<String, io::Error> {
+        // TODO: Convert weird formats like HEIC
         let name = format!(
             "{}.{}",
             to,
