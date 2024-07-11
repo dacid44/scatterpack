@@ -15,8 +15,6 @@
     "image:default",
     "menu:default",
     "tray:default",
-    "store:default",
-    "dialog:default",
     "dialog:default"
   ]
 }

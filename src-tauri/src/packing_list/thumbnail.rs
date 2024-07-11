@@ -34,12 +34,6 @@ impl Thumbnails {
         self.base_path.join(name)
     }
 
-    /// Get a full url from a given thumbnail name. Does not validate that the given name is in the
-    /// store.
-    pub fn get_url(&self, name: &str) -> String {
-        format!("file://{}", self.get_full_path(name).to_string_lossy())
-    }
-
     /// Copies a file from the given path to the thumbnail store. Appends the original file
     /// extension to the new name given and returns the name.
     pub fn copy_from(&self, from: impl AsRef<Path>, to: &str) -> Result<String, io::Error> {
@@ -53,8 +47,6 @@ impl Thumbnails {
                 .to_string_lossy()
         );
         let new_path = self.base_path.join(&name);
-        eprintln!("old path: {:?}", from.as_ref());
-        eprintln!("new path: {new_path:?}");
         let mut old_file = File::open(from)?;
         let mut new_file = File::create(&new_path)?;
         io::copy(&mut old_file, &mut new_file)?;

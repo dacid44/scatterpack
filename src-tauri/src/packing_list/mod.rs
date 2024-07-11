@@ -2,7 +2,7 @@ pub mod thumbnail;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[non_exhaustive]
 #[serde(rename_all = "camelCase")]
 pub struct PackingList {
@@ -19,7 +19,7 @@ impl PackingList {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[non_exhaustive]
 #[serde(rename_all = "camelCase")]
 pub struct PackItem {
@@ -38,7 +38,7 @@ impl PackItem {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[non_exhaustive]
 #[serde(rename_all = "camelCase")]
 pub struct PackCollection {
@@ -55,7 +55,7 @@ impl PackCollection {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "content")]
 #[serde(rename_all = "camelCase")]
 pub enum ListItem {
@@ -63,11 +63,23 @@ pub enum ListItem {
     Collection(PackCollection),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UniqueItem {
     name: String,
     description: String,
     location: String,
     thumbnail: Option<String>,
+}
+
+
+impl UniqueItem {
+    pub fn new(name: impl Into<String>, description: impl Into<String>, location: impl Into<String>, thumbnail: Option<String>) -> Self {
+        Self {
+            name: name.into(),
+            description: description.into(),
+            location: location.into(),
+            thumbnail,
+        }
+    }
 }

@@ -1,14 +1,17 @@
-use packing_list::{thumbnail::Thumbnails, ListItem, PackCollection, PackItem, PackingList};
-use tauri::{async_runtime::Mutex, Manager, Wry};
+use packing_list::{
+    thumbnail::Thumbnails, ListItem, PackCollection, PackItem, PackingList, UniqueItem,
+};
+use store::Store;
+use tauri::{async_runtime::Mutex, Manager};
 use tauri_plugin_dialog::DialogExt;
-use tauri_plugin_store::{Store, StoreBuilder};
 
 mod packing_list;
 mod platform;
+mod store;
 
 struct AppState {
-    packing_lists_store: Mutex<Store<Wry>>,
-    unique_items_store: Mutex<Store<Wry>>,
+    packing_lists: Mutex<Vec<PackingList>>,
+    unique_items: Mutex<Vec<UniqueItem>>,
     thumbnails: Thumbnails,
 }
 
@@ -17,27 +20,18 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {
-            let mut packing_lists_store =
-                StoreBuilder::new("packing_lists.bin").build(app.handle().clone());
-            if packing_lists_store.load().is_err() {
-                packing_lists_store
-                    .insert(
-                        "example".to_string(),
-                        serde_json::to_value(example_packing_list()).map_err(print_error)?,
-                    )
-                    .map_err(print_error)?;
-            }
+            store::init_store(app.handle().clone()).expect("failed to initialize store");
 
-            let mut unique_items_store =
-                StoreBuilder::new("unique_items.bin").build(app.handle().clone());
+            let packing_lists = Vec::<PackingList>::load(app.handle().clone())
+                .unwrap_or_else(|_| vec![example_packing_list()]);
 
-            let _ = unique_items_store.load();
+            let unique_items = Vec::<UniqueItem>::load(app.handle().clone())
+                .unwrap_or_else(|_| example_unique_items());
 
             app.manage(AppState {
-                packing_lists_store: Mutex::new(packing_lists_store),
-                unique_items_store: Mutex::new(unique_items_store),
+                packing_lists: Mutex::new(packing_lists),
+                unique_items: Mutex::new(unique_items),
                 thumbnails: Thumbnails::new(app.handle().clone())
                     .expect("failed to initialize thumbnail store"),
             });
@@ -50,13 +44,10 @@ pub fn run() {
             pick_file,
             pick_thumbnail,
             get_thumbnail_path,
+            load_unique_items,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-fn print_error(e: impl std::error::Error) -> String {
-    format!("{e:?}")
 }
 
 #[tauri::command]
@@ -79,26 +70,28 @@ fn example_packing_list() -> PackingList {
 }
 
 #[tauri::command]
-async fn save_packing_list(packing_list: PackingList, app: tauri::AppHandle) -> Result<(), String> {
+async fn save_packing_list(packing_list: PackingList, app: tauri::AppHandle) -> tauri::Result<()> {
     let state = app.state::<AppState>();
-    let mut store = state.packing_lists_store.lock().await;
-    store
-        .insert(
-            packing_list.name.clone(),
-            serde_json::to_value(packing_list).map_err(print_error)?,
-        )
-        .map_err(print_error)?;
-    store.save().map_err(print_error)
+    let mut packing_lists = state.packing_lists.lock().await;
+
+    if let Some(list) = packing_lists
+        .iter_mut()
+        .find(|list| list.name == packing_list.name)
+    {
+        *list = packing_list;
+    } else {
+        packing_lists.push(packing_list);
+    }
+
+    packing_lists.save(app.clone())?;
+    Ok(())
 }
 
 #[tauri::command]
-async fn load_packing_lists(app: tauri::AppHandle) -> Result<Vec<PackingList>, String> {
+async fn load_packing_lists(app: tauri::AppHandle) -> Vec<PackingList> {
     let state = app.state::<AppState>();
-    let store = state.packing_lists_store.lock().await;
-    store
-        .values()
-        .map(|val| serde_json::from_value(val.clone()).map_err(print_error))
-        .collect()
+    let packing_lists = state.packing_lists.lock().await;
+    packing_lists.clone()
 }
 
 #[tauri::command]
@@ -143,4 +136,41 @@ fn get_thumbnail_path(name: String, app: tauri::AppHandle) -> String {
         .get_full_path(&name)
         .to_string_lossy()
         .into_owned()
+}
+
+fn example_unique_items() -> Vec<UniqueItem> {
+    vec![
+        UniqueItem::new(
+            "Choir DC shirt",
+            "gray shirt with cherry blossom design",
+            "packed",
+            None,
+        ),
+        UniqueItem::new(
+            "Venturing pants",
+            "green activewear zip-off pants",
+            "in dresser",
+            None,
+        ),
+        UniqueItem::new("Black socks", "", "wearing", None),
+        UniqueItem::new(
+            "Ghibli shirt",
+            "gray shirt with Studio Ghibli stuff on it",
+            "wearing",
+            None,
+        ),
+        UniqueItem::new(
+            "Dark gray shorts",
+            "semi-formal dark gray shorts",
+            "in dresser",
+            None,
+        ),
+    ]
+}
+
+#[tauri::command]
+async fn load_unique_items(app: tauri::AppHandle) -> Vec<UniqueItem> {
+    let state = app.state::<AppState>();
+    let unique_items = state.unique_items.lock().await;
+    unique_items.clone()
 }

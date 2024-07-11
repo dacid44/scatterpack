@@ -53,3 +53,8 @@ export async function getThumbnailUrl(name) {
 	let url = window.URL.createObjectURL(blob);
 	return [url, () => window.URL.revokeObjectURL(url)];
 }
+
+/** @returns {Promise<UniqueItem[]>} */
+export async function loadUniqueItems() {
+	return await invoke('load_unique_items');
+}
