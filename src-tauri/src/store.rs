@@ -1,6 +1,11 @@
-use std::{fs::{self, File}, io, path::PathBuf};
+use std::{
+    fs::{self, File},
+    io,
+    path::PathBuf,
+};
 
 use anyhow::Context;
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     packing_list::{PackingList, UniqueItem},
@@ -15,8 +20,9 @@ pub fn init_store(app: tauri::AppHandle) -> io::Result<()> {
     fs::create_dir_all(STORE_PATH)
 }
 
-pub trait Store: Sized {
+pub trait Store: Serialize + DeserializeOwned {
     const FILENAME: &'static str;
+    const ERROR_NAME: &'static str;
 
     fn store_path(app: tauri::AppHandle) -> PathBuf {
         let mut path = platform::data_path(app);
@@ -25,47 +31,30 @@ pub trait Store: Sized {
         path
     }
 
-    fn load(app: tauri::AppHandle) -> anyhow::Result<Self>;
+    fn load(app: tauri::AppHandle) -> anyhow::Result<Self> {
+        serde_json::from_reader(
+            File::open(Self::store_path(app))
+                .with_context(|| format!("Failed to open the {} store file", Self::ERROR_NAME))?,
+        )
+        .with_context(|| format!("Failed to deserialize the {} store file", Self::ERROR_NAME))
+    }
 
-    fn save(&self, app: tauri::AppHandle) -> anyhow::Result<()>;
+    fn save(&self, app: tauri::AppHandle) -> anyhow::Result<()> {
+        serde_json::to_writer(
+            File::create(Self::store_path(app))
+                .with_context(|| format!("Failed to write the {} store file", Self::ERROR_NAME))?,
+            self,
+        )
+        .with_context(|| format!("Failed to serialize the {} store", Self::ERROR_NAME))
+    }
 }
 
 impl Store for Vec<PackingList> {
     const FILENAME: &'static str = "packing_lists.json";
-
-    fn load(app: tauri::AppHandle) -> anyhow::Result<Self> {
-        serde_json::from_reader(
-            File::open(Self::store_path(app))
-                .context("Failed to open the packing list store file")?,
-        )
-        .context("Failed to deserialize the packing list store file")
-    }
-
-    fn save(&self, app: tauri::AppHandle) -> anyhow::Result<()> {
-        serde_json::to_writer(
-            File::create(Self::store_path(app)).context("Failed to write the packing list store file")?,
-            self
-        )
-        .context("Failed to serialize the packing list store")
-    }
+    const ERROR_NAME: &'static str = "packing list";
 }
 
 impl Store for Vec<UniqueItem> {
     const FILENAME: &'static str = "unique_items.json";
-
-    fn load(app: tauri::AppHandle) -> anyhow::Result<Self> {
-        serde_json::from_reader(
-            File::open(Self::store_path(app))
-                .context("Failed to open the unique item store file")?,
-        )
-        .context("Failed to deserialize the unique item store file")
-    }
-
-    fn save(&self, app: tauri::AppHandle) -> anyhow::Result<()> {
-        serde_json::to_writer(
-            File::create(Self::store_path(app)).context("Failed to write the unique item store file")?,
-            self
-        )
-        .context("Failed to serialize the unique item store")
-    }
+    const ERROR_NAME: &'static str = "unique item";
 }
