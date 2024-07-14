@@ -17,7 +17,7 @@ const STORE_PATH: &str = "store";
 pub fn init_store(app: tauri::AppHandle) -> io::Result<()> {
     let mut path = platform::data_path(app);
     path.push(STORE_PATH);
-    fs::create_dir_all(STORE_PATH)
+    fs::create_dir_all(path)
 }
 
 pub trait Store: Serialize + DeserializeOwned {
