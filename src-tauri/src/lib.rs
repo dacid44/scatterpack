@@ -1,3 +1,4 @@
+use anyhow::Context;
 use packing_list::{
     thumbnail::Thumbnails, ListItem, PackCollection, PackItem, PackingList, UniqueItem,
 };
@@ -43,6 +44,7 @@ pub fn run() {
             load_packing_lists,
             pick_file,
             pick_thumbnail,
+            save_base64_thumbnail,
             get_thumbnail_path,
             load_unique_items,
         ])
@@ -104,7 +106,7 @@ async fn pick_file(app: tauri::AppHandle) -> Result<String, String> {
         .path;
     let thumbnails = &app.state::<AppState>().thumbnails;
     let name = thumbnails
-        .copy_from(path, "test")
+        .copy_from_path(path, "test")
         .map_err(|err| format!("error copying file: {err:?}"))?;
     Ok(thumbnails
         .get_full_path(&name)
@@ -124,8 +126,22 @@ async fn pick_thumbnail(name: String, app: tauri::AppHandle) -> Result<String, S
         .path;
     let thumbnails = &app.state::<AppState>().thumbnails;
     let name = thumbnails
-        .copy_from(path, &name)
+        .copy_from_path(path, &name)
         .map_err(|err| format!("error copying file: {err:?}"))?;
+    Ok(name)
+}
+
+#[tauri::command]
+async fn save_base64_thumbnail(
+    data: &str,
+    name: String,
+    filename: String,
+    app: tauri::AppHandle,
+) -> tauri::Result<String> {
+    let thumbnails = &app.state::<AppState>().thumbnails;
+    let name = thumbnails
+        .save_from_base64(data, &name, filename)
+        .context("Failed to save base64 thumbnail")?;
     Ok(name)
 }
 

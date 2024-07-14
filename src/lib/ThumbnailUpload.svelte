@@ -1,6 +1,6 @@
 <script>
 	import { CirclePlusSolid, EditSolid } from 'flowbite-svelte-icons';
-	import { getThumbnailUrl, pickThumbnail } from './backend';
+	import { getThumbnailUrl, pickThumbnail, saveThumbnailFile } from './backend';
 	import { randomId } from '$lib';
 	import { Button } from 'flowbite-svelte';
 
@@ -20,20 +20,32 @@
 		}
 	}
 
-	async function selectImage() {
-		name = await pickThumbnail('thumbnail-' + randomId());
+	/** @type {HTMLInputElement} */
+	let fileInput;
+
+	/** @param {Event} event */
+	async function saveThumbnail(event) {
+		const file = /** @type {HTMLInputElement} */ (event.target)?.files?.[0];
+		if (file !== null && file !== undefined) {
+			name = await saveThumbnailFile(file, 'thumbnail-' + randomId());
+		}
 	}
 </script>
 
+<!-- This input is offscreen and thus (theoretically) invisible. -->
+<!-- The click event is forwarded to it by the button. -->
+<div class="fixed top-[200vh] select-none">
+	<input type="file" accept="image/*" bind:this={fileInput} on:change={saveThumbnail} />
+</div>
 {#if imageUrl === null}
-	<button on:click={selectImage} class="thumbnail-upload no-upload">
+	<button on:click={() => fileInput.click()} class="thumbnail-upload no-upload">
 		<div class="thumbnail-upload-inner">
 			<CirclePlusSolid />
 			<span class="text-xs text-center">Choose an image</span>
 		</div>
 	</button>
 {:else}
-	<button on:click={selectImage} class="thumbnail-upload uploaded border-solid">
+	<button on:click={() => fileInput.click()} class="thumbnail-upload uploaded border-solid">
 		<img
 			src={imageUrl}
 			on:load={imageDestructor}
@@ -43,6 +55,7 @@
 		<div class="thumbnail-upload-inner hidden">
 			<EditSolid />
 			<span class="text-xs text-center font-semibold z-10">Change image</span>
+			<!-- TODO: Make it so you don't have to hover on mobile -->
 			<Button on:click={() => (name = null)} size="xs" color="red" pill class="h-6 mt-auto">
 				Remove
 			</Button>

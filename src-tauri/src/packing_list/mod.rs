@@ -72,9 +72,13 @@ pub struct UniqueItem {
     thumbnail: Option<String>,
 }
 
-
 impl UniqueItem {
-    pub fn new(name: impl Into<String>, description: impl Into<String>, location: impl Into<String>, thumbnail: Option<String>) -> Self {
+    pub fn new(
+        name: impl Into<String>,
+        description: impl Into<String>,
+        location: impl Into<String>,
+        thumbnail: Option<String>,
+    ) -> Self {
         Self {
             name: name.into(),
             description: description.into(),

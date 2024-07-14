@@ -1,8 +1,11 @@
 use std::{
     fs::{self, File},
-    io,
+    io::{self, Write},
     path::{Path, PathBuf},
 };
+
+use anyhow::Context;
+use base64::{prelude::BASE64_STANDARD, Engine};
 
 use crate::platform;
 
@@ -36,7 +39,7 @@ impl Thumbnails {
 
     /// Copies a file from the given path to the thumbnail store. Appends the original file
     /// extension to the new name given and returns the name.
-    pub fn copy_from(&self, from: impl AsRef<Path>, to: &str) -> Result<String, io::Error> {
+    pub fn copy_from_path(&self, from: impl AsRef<Path>, to: &str) -> Result<String, io::Error> {
         // TODO: Convert weird formats like HEIC
         let name = format!(
             "{}.{}",
@@ -50,6 +53,34 @@ impl Thumbnails {
         let mut old_file = File::open(from)?;
         let mut new_file = File::create(&new_path)?;
         io::copy(&mut old_file, &mut new_file)?;
+        Ok(name)
+    }
+
+    /// Decodes base64 data and saves the resulting file into the thumbnail store. Expects the
+    /// extension argument to either be a filename with an extension, or just an extension.
+    pub fn save_from_base64(
+        &self,
+        from: impl AsRef<str>,
+        to: &str,
+        extension: impl AsRef<Path>,
+    ) -> Result<String, anyhow::Error> {
+        let name = format!(
+            "{}.{}",
+            to,
+            extension
+                .as_ref()
+                .extension()
+                .unwrap_or(extension.as_ref().as_os_str())
+                .to_string_lossy()
+                .trim_start_matches('.'),
+        );
+        let path = self.base_path.join(&name);
+        let data = BASE64_STANDARD
+            .decode(from.as_ref())
+            .context("Failed to decode base64 thumbnail image data")?;
+        let mut file = File::create(path).context("Failed to create thumbnail image file")?;
+        file.write_all(&data)
+            .context("Failed to write thumbnail image data to file")?;
         Ok(name)
     }
 

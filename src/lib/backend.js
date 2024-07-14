@@ -35,7 +35,30 @@ export async function pickFile() {
  * @returns {Promise<string>}
  */
 export async function pickThumbnail(name) {
-	return await invoke('pick_thumbnail', { name })
+	return await invoke('pick_thumbnail', { name });
+}
+
+/**
+ * @param {File} file
+ * @param {string} name
+ * @returns {Promise<string>}
+ */
+export async function saveThumbnailFile(file, name) {
+	/** @type {string} */
+	const data = await new Promise((resolve, reject) => {
+		const reader = Object.assign(new FileReader(), {
+			onload: () => {
+				if (typeof reader.result === 'string') {
+					resolve(reader.result.split(',')[1]);
+				} else {
+					reject('reader.result is not a string');
+				}
+			},
+			onerror: () => reject(reader.error)
+		});
+		reader.readAsDataURL(file);
+	});
+	return await invoke('save_base64_thumbnail', { data, name, filename: file.name });
 }
 
 /**
@@ -47,7 +70,7 @@ export async function pickThumbnail(name) {
  */
 export async function getThumbnailUrl(name) {
 	/** @type {string} */
-	let path = await invoke('get_thumbnail_path', { name })
+	let path = await invoke('get_thumbnail_path', { name });
 	let type = mime.getType(path) || 'image';
 	let blob = new Blob([await readFile(path)], { type });
 	let url = window.URL.createObjectURL(blob);
