@@ -10,5 +10,7 @@ pub fn data_path(app: tauri::AppHandle) -> PathBuf {
 
 #[cfg(target_os = "android")]
 pub fn data_path(app: tauri::AppHandle) -> PathBuf {
-    PathBuf::from("/data/data").join(&app.config().identifier)
+    use std::path::Path;
+
+    AsRef::<Path>::as_ref("/data/data").join(&app.config().identifier)
 }
