@@ -1,0 +1,10 @@
+// Static tasks configuration.
+[
+	{
+		"label": "Tauri dev",
+		"command": "nvm use 20 && cargo tauri dev",
+		"use_new_terminal": false,
+		"allow_concurrent_runs": false,
+		"reveal": "always"
+	}
+]

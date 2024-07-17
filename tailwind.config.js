@@ -30,7 +30,7 @@ export default {
 			}
 		}
 	},
-	important: '#app-body',
+	// important: '#app-body',
 	corePlugins: {
 		// preflight: false
 	},

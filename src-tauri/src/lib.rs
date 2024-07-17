@@ -57,16 +57,16 @@ fn example_packing_list() -> PackingList {
     PackingList::new(
         "example",
         vec![
-            ListItem::Item(PackItem::new("USB Charger", "near bed", 2)),
+            ListItem::Item(PackItem::new("USB Charger", "near bed", 2, Vec::new())),
             ListItem::Collection(PackCollection::new(
                 "Clothes",
                 vec![
-                    ListItem::Item(PackItem::new("T-shirt", "packed", 5)),
-                    ListItem::Item(PackItem::new("Socks", "laundry", 6)),
-                    ListItem::Item(PackItem::new("Hat", "wearing", 1)),
+                    ListItem::Item(PackItem::new("T-shirt", "packed", 5, Vec::new())),
+                    ListItem::Item(PackItem::new("Socks", "laundry", 6, Vec::new())),
+                    ListItem::Item(PackItem::new("Hat", "wearing", 1, Vec::new())),
                 ],
             )),
-            ListItem::Item(PackItem::new("Razor", "in bathroom", 1)),
+            ListItem::Item(PackItem::new("Razor", "in bathroom", 1, Vec::new())),
         ],
     )
 }

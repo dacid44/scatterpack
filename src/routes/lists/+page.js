@@ -1,5 +1,4 @@
 import { loadPackingLists } from '$lib/backend';
-import { invoke } from '@tauri-apps/api/core';
 
 /** @type {import('./$types').PageLoad} */
 export async function load() {

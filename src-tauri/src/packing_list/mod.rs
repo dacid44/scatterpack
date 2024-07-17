@@ -26,16 +26,27 @@ pub struct PackItem {
     pub name: String,
     pub location: String,
     pub quantity: u32,
+    pub packed: Vec<PackedItem>,
 }
 
 impl PackItem {
-    pub fn new(name: impl Into<String>, location: impl Into<String>, quantity: u32) -> Self {
+    pub fn new(name: impl Into<String>, location: impl Into<String>, quantity: u32, packed: Vec<PackedItem>) -> Self {
         Self {
             name: name.into(),
             location: location.into(),
             quantity,
+            packed,
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", content = "content")]
+#[serde(rename_all = "camelCase")]
+pub enum PackedItem {
+    Generic,
+    Ephemeral(String),
+    Unique(String),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

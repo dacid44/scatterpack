@@ -1,5 +1,5 @@
 <script>
-	import { Label, ButtonGroup, Card, Input, Textarea } from 'flowbite-svelte';
+	import { Label, Card, Input, Textarea } from 'flowbite-svelte';
 	import MoveHandle from './MoveHandle.svelte';
 	import EditModal from './EditModal.svelte';
 	import ThumbnailUpload from './ThumbnailUpload.svelte';

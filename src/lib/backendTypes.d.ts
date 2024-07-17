@@ -2,7 +2,21 @@ type PackItem = {
 	name: string;
 	location: string;
 	quantity: number;
+  packed: PackedItem[];
 };
+
+type PackedItem =
+	| {
+			type: 'generic';
+	  }
+	| {
+			type: 'ephemeral';
+			content: string;
+	  }
+	| {
+			type: 'unique';
+			content: string;
+	  };
 
 type PackCollection = {
 	name: string;
@@ -11,20 +25,20 @@ type PackCollection = {
 
 type ListItem =
 	| {
-		type: 'item';
-		content: PackItem;
-	}
+			type: 'item';
+			content: PackItem;
+	  }
 	| {
-		type: 'collection';
-		content: PackCollection;
-	};
+			type: 'collection';
+			content: PackCollection;
+	  };
 
 type UniqueItem = {
 	name: string;
 	description: string;
 	location: string;
 	thumbnail: string | null;
-}
+};
 
 type PackingList = {
 	name: string;
