@@ -44,6 +44,7 @@
     "@tauri-apps/plugin-dialog": "^2.0.0-beta.6",
     "@tauri-apps/plugin-fs": "^2.0.0-beta.6",
     "mime": "^4.0.4",
+    "rxjs": "^7.8.1",
     "sortablejs": "^1.15.2",
     "svelte-fa": "^4.0.2"
   }

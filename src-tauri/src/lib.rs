@@ -40,6 +40,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             example_packing_list,
+            update_packing_list,
             save_packing_list,
             load_packing_lists,
             pick_file,
@@ -72,7 +73,7 @@ fn example_packing_list() -> PackingList {
 }
 
 #[tauri::command]
-async fn save_packing_list(packing_list: PackingList, app: tauri::AppHandle) -> tauri::Result<()> {
+async fn update_packing_list(packing_list: PackingList, app: tauri::AppHandle) {
     let state = app.state::<AppState>();
     let mut packing_lists = state.packing_lists.lock().await;
 
@@ -84,8 +85,23 @@ async fn save_packing_list(packing_list: PackingList, app: tauri::AppHandle) -> 
     } else {
         packing_lists.push(packing_list);
     }
+}
 
-    packing_lists.save(app.clone())?;
+#[tauri::command]
+async fn save_packing_list(
+    packing_list: Option<PackingList>,
+    app: tauri::AppHandle,
+) -> tauri::Result<()> {
+    if let Some(packing_list) = packing_list {
+        update_packing_list(packing_list, app.clone()).await;
+    }
+
+    app.state::<AppState>()
+        .packing_lists
+        .lock()
+        .await
+        .save(app.clone())
+        .context("Failed to save packing lists")?;
     Ok(())
 }
 

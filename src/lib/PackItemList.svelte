@@ -79,7 +79,8 @@
 			content: {
 				name: 'Item',
 				location: '',
-				quantity: 1
+				quantity: 1,
+				packed: []
 			}
 		};
 		const key = 'item-' + randomId();

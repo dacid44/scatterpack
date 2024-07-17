@@ -12,8 +12,15 @@ export async function examplePackingList() {
 /**
  * @param {PackingList} packingList
  */
+export async function updatePackingList(packingList) {
+	await invoke('update_packing_list', { packingList });
+}
+
+/**
+ * @param {PackingList} [packingList]
+ */
 export async function savePackingList(packingList) {
-	await invoke('save_packing_list', { packingList });
+	await invoke('save_packing_list', { packingList: packingList || null });
 }
 
 /**
